@@ -73,6 +73,7 @@ namespace Catch {
                Catch::cout() << testCaseInfo.name;
             if ( config.verbosity() >= Verbosity::High )
                 Catch::cout() << "\t@" << testCaseInfo.lineInfo;
+                Catch::cout() << "\t@" << testCaseInfo.tagsAsString();
             Catch::cout() << std::endl;
         }
         return matchedTests;
