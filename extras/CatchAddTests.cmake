@@ -107,9 +107,13 @@ endif()
 
 # Parse output
 foreach(line ${output})
-  set(test ${line})
+  # The output is tab separated. Split along the tabs
+  string(REGEX MATCHALL "[^\t]+" line_fields "${line}")
+  list(GET line_fields 0 test_name_unprocessed)
+  list(GET line_fields 2 test_tags_unprocessed)
+
   # Escape characters in test case names that would be parsed by Catch2
-  set(test_name ${test})
+  set(test_name ${test_name_unprocessed})
   foreach(char , [ ])
     string(REPLACE ${char} "\\${char}" test_name ${test_name})
   endforeach(char)
@@ -118,10 +122,15 @@ foreach(line ${output})
     string(REGEX REPLACE "[^A-Za-z0-9_]" "_" test_name_clean ${test_name})
     set(output_dir_arg "--out ${output_dir}/${output_prefix}${test_name_clean}${output_suffix}")
   endif()
-  
+
+  # Reformat the tags in a format understandable by cmake
+  # i.e. : remove the leading @ and add ';' between the tags
+  string(REPLACE "@" "" test_tags "${test_tags_unprocessed}")
+  string(REPLACE "][" "]\\;[" test_tags "${test_tags}")
+
   # ...and add to script
   add_command(add_test
-    "${prefix}${test}${suffix}"
+    "${prefix}${test_name_unprocessed}${suffix}"
     ${TEST_EXECUTOR}
     "${TEST_EXECUTABLE}"
     "${test_name}"
@@ -130,9 +139,10 @@ foreach(line ${output})
     "${output_dir_arg}"
   )
   add_command(set_tests_properties
-    "${prefix}${test}${suffix}"
+    "${prefix}${test_name_unprocessed}${suffix}"
     PROPERTIES
     WORKING_DIRECTORY "${TEST_WORKING_DIR}"
+    LABELS "${test_tags}"
     ${properties}
   )
 
@@ -143,7 +153,8 @@ foreach(line ${output})
        ENVIRONMENT_MODIFICATION "${environment_modifications}")
    endif()
 
-  list(APPEND tests "${prefix}${test}${suffix}")
+  list(APPEND tests "${prefix}${test_name_unprocessed}${suffix}")
+
 endforeach()
 
 # Create a list of all discovered tests, which users may use to e.g. set
