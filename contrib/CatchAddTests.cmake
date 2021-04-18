@@ -26,6 +26,8 @@ function(add_command NAME)
   set(script "${script}${NAME}(${_args})\n" PARENT_SCOPE)
 endfunction()
 
+message("Generating test list for '${TEST_EXECUTABLE}'")
+
 # Run test executable to get list of available tests
 if(NOT EXISTS "${TEST_EXECUTABLE}")
   message(FATAL_ERROR
@@ -40,7 +42,7 @@ execute_process(
 )
 # Catch --list-test-names-only reports the number of tests, so 0 is... surprising
 if(${result} EQUAL 0)
-  message(WARNING
+  message(FATAL_ERROR
     "Test executable '${TEST_EXECUTABLE}' contains no tests!\n"
   )
 elseif(${result} LESS 0)
