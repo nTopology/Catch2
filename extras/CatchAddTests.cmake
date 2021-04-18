@@ -38,8 +38,6 @@ function(add_command NAME)
   set(script "${script}${NAME}(${_args})\n" PARENT_SCOPE)
 endfunction()
 
-message("Generating test list for '${TEST_EXECUTABLE}'")
-
 # Run test executable to get list of available tests
 if(NOT EXISTS "${TEST_EXECUTABLE}")
   message(FATAL_ERROR
@@ -65,6 +63,9 @@ if(NOT ${result} EQUAL 0)
     "  Output: ${output}\n"
   )
 endif()
+
+message("Found ${result} tests for '${TEST_EXECUTABLE}'")
+message("${output}")
 
 string(REPLACE "\n" ";" output "${output}")
 
