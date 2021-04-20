@@ -38,20 +38,31 @@ execute_process(
   RESULT_VARIABLE result
   WORKING_DIRECTORY "${TEST_WORKING_DIR}"
 )
+string(REPLACE "\n" ";" output "${output}")
+
+# Number of returned lines in the output
+cmake_policy(PUSH)
+cmake_policy(SET CMP0007 NEW)
+list(LENGTH output output_length)
+math(EXPR output_length ${output_length}-1)
+cmake_policy(POP)
+
 # Catch --list-test-names-only reports the number of tests, so 0 is... surprising
 if(${result} EQUAL 0)
-  message(WARNING
+  message(FATAL_ERROR
     "Test executable '${TEST_EXECUTABLE}' contains no tests!\n"
   )
-elseif(${result} LESS 0)
+# If the result is negative, then Catch returned an error.
+# If the output length does match the return code, then the output is inconsistent
+# and likely results from a system error.
+elseif(${result} LESS 0 OR NOT ${result} EQUAL ${output_length})
   message(FATAL_ERROR
     "Error running test executable '${TEST_EXECUTABLE}':\n"
     "  Result: ${result}\n"
+    "  Lines:  ${output_length}\n"
     "  Output: ${output}\n"
   )
 endif()
-
-string(REPLACE "\n" ";" output "${output}")
 
 # Run test executable to get list of available reporters
 execute_process(
